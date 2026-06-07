@@ -48,18 +48,8 @@ async function api(url, options = {}) {
     // читаємо response (і success і error)
     const data = await res.json().catch(() => null);
 
-    // ❌ ERROR HANDLING FROM ROUTES
     if (!res.ok) {
-      if (data?.detail?.message) {
-        // structured error (твій новий формат)
-        showError(data.detail.message);
-      } else if (typeof data?.detail === "string") {
-        // старий формат
-        showError(data.detail);
-      } else {
-        showError("Request failed");
-      }
-
+      showError(extractError(data));
       return null;
     }
 
@@ -768,6 +758,21 @@ function minLen(v, len) {
 }
 
 function showError(msg) {
-  alert(msg);
-  return false;
+  alert(String(msg));
+}
+
+function extractError(data) {
+  if (!data) return "Request failed";
+
+  if (typeof data === "string") return data;
+
+  if (typeof data.detail === "string") return data.detail;
+
+  if (data.detail?.message) return data.detail.message;
+
+  if (data.detail?.msg) return data.detail.msg;
+
+  if (data.message) return data.message;
+
+  return JSON.stringify(data);
 }
