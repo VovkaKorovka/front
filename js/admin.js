@@ -32,20 +32,43 @@ async function api(url, options = {}) {
       }
     });
 
+    // 401
     if (res.status === 401) {
-      alert("Session expired");
+      showError("Session expired");
       logout();
       return null;
     }
 
+    // 403
     if (res.status === 403) {
-      alert("No permission");
+      showError("No permission");
       return null;
     }
 
-    return res;
+    // читаємо response (і success і error)
+    const data = await res.json().catch(() => null);
+
+    // ❌ ERROR HANDLING FROM ROUTES
+    if (!res.ok) {
+      if (data?.detail?.message) {
+        // structured error (твій новий формат)
+        showError(data.detail.message);
+      } else if (typeof data?.detail === "string") {
+        // старий формат
+        showError(data.detail);
+      } else {
+        showError("Request failed");
+      }
+
+      return null;
+    }
+
+    // ✅ SUCCESS
+    return data;
+
   } catch (err) {
-    console.error("API ERROR:", err);
+    console.error(err);
+    showError("Server error");
     return null;
   }
 }
