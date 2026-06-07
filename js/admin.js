@@ -32,28 +32,30 @@ async function api(url, options = {}) {
       }
     });
 
-    // 401
     if (res.status === 401) {
       showError("Session expired");
       logout();
       return null;
     }
 
-    // 403
     if (res.status === 403) {
       showError("No permission");
       return null;
     }
 
-    // читаємо response (і success і error)
-    const data = await res.json().catch(() => null);
+    let data = null;
+
+    try {
+      data = await res.json();
+    } catch (e) {
+      data = null;
+    }
 
     if (!res.ok) {
       showError(extractError(data));
       return null;
     }
 
-    // ✅ SUCCESS
     return data;
 
   } catch (err) {
@@ -758,7 +760,31 @@ function minLen(v, len) {
 }
 
 function showError(msg) {
-  alert(String(msg));
+  const box = document.getElementById("errorBox");
+  if (!box) return alert(msg);
+
+  const div = document.createElement("div");
+  div.className = "error-toast";
+
+  div.innerText = String(msg);
+
+  box.appendChild(div);
+
+  setTimeout(() => div.remove(), 4000);
+}
+
+function showSuccess(msg) {
+  const box = document.getElementById("errorBox");
+  if (!box) return alert(msg);
+
+  const div = document.createElement("div");
+  div.className = "success-toast";
+
+  div.innerText = String(msg);
+
+  box.appendChild(div);
+
+  setTimeout(() => div.remove(), 3000);
 }
 
 function extractError(data) {
